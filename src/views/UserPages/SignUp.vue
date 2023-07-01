@@ -16,6 +16,10 @@
             </div>
             
             <div v-if="error">{{ error }}</div>
+            <div class="alt-route">
+                <span>Already have an account? </span>
+                <router-link class="route" :to="{ name: 'signin'}">Sign In</router-link>
+            </div>
             <div class="form-submit">
                 <button class="payment-btn btn" v-if="isPending">Loading</button>
                 <button class="payment-btn btn" v-else>Sign Up</button>

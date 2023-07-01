@@ -11,9 +11,13 @@
                 <input type="Password" id="password" placeholder="Password" v-model="password"/>
             </div>
             <div v-if="error">{{ error }}</div>
+            <div class="alt-route">
+                <span>Don't have an account? </span>
+                <router-link class="route" :to="{ name: 'signup'}">Sign up</router-link>
+            </div>
             <div class="form-submit">
                 <button v-if="isPending" class="payment-btn btn">Loading....</button>
-                <button v-else class="payment-btn btn">SignIn</button>
+                <button v-else class="payment-btn btn">Sign In</button>
             </div>
         </form>
     </div>
@@ -44,5 +48,5 @@ import { useRouter } from 'vue-router';
 </script>
 
 <style scoped>
-
+    
 </style>

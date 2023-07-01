@@ -47,8 +47,6 @@ export default {
     const url = 'https://course-api.com/javascript-store-products'
 
     const { error, store, getData, isLoading } = fetchData()
-    
-    // const { addDoc } = useCollection('store')
     const { documents } = getCollection('store')
     const pageLoaded = ref(false)
     
@@ -84,22 +82,7 @@ export default {
             
         }
 
-            // await addDoc( {
-                // id,
-                // fields: {
-                //     company, 
-                //     name, 
-                //     price,
-                //     image: [{
-                //         thumbnails: {
-                //             large: {
-                //                 url: imageSrc
-                //             }
-                //         }
-                //     }]
-                // },
-                // createdAt: timestamp()
-            // })
+           
         });
     }
 

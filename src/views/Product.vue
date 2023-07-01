@@ -1,6 +1,6 @@
 <template>
     <Navbar :logo="logoUrl" :page="page"/>
-    <PageHero :text=" `Home / ${store.fields.name}` " />
+    <PageHero :text="heroText" />
 
     <div v-if="error">{{ error }}</div>
     <section class="single-product-container product-container" v-if="store && !isLoading">
@@ -37,12 +37,14 @@ import Spinner from '@/components/Spinner.vue';
 import PageHero from '@/components/PageHero.vue';
 import fetchData from '@/functions/fetchData';
 import getFormatPrice from '@/functions/getFormatPrice';
+import { ref } from 'vue';
   export default {
     components: { Navbar, PageHero, Spinner },
     props: ['id'],
     setup(props){
       const logoUrl = "logo-black.svg"
       const page = true
+      const heroText = ref('')
       const singleUrl = `https://course-api.com/javascript-store-single-product?id=${props.id}`
 
       const { error, store, getData, isLoading } = fetchData()
@@ -50,10 +52,12 @@ import getFormatPrice from '@/functions/getFormatPrice';
       getData(singleUrl)
       console.log(store.value)
 
-      
+      setTimeout(()=>{
+        heroText.value = `Home / ${store.value.fields.name}`
+      }, 900)
 
     
-      return { logoUrl, page, store, error, formatPrice, isLoading }
+      return { logoUrl, page, store, error, formatPrice, isLoading, heroText }
     }
     
   }

@@ -8,7 +8,7 @@
                     search
                     </span>
                 </router-link>
-                <button class="product-cart-btn product-icon" :data-id="product.id">
+                <button class="product-cart-btn product-icon" :data-id="product.id" @click="addToCart">
                     <span class="material-icons">
                     shopping_cart
                     </span>
@@ -24,14 +24,56 @@
 </template>
 
 <script>
+import getCollection from '@/functions/getCollection'
 import getFormatPrice from '../functions/getFormatPrice'
+import useDocument from '@/functions/useDocument'
+import { timestamp, projectFirestore } from '@/firebase/config'
+import getUser from '@/functions/getUser'
+import { useRouter } from 'vue-router'
     export default {
         props: ['products'],
-        setup(){
+        setup(props){
+            const { documents } = getCollection('cart')
             const { formatPrice } = getFormatPrice()
+            const { user } = getUser()
+            const router = useRouter()
+                    
 
 
-            return { formatPrice }
+            async function addToCart(e){
+                if(user.value){
+                    const target = e.target
+                    const targetID = target.dataset.id || target.parentElement.dataset.id
+    
+                    console.log(documents)
+                    let item = documents.value.find((cartItem)=> cartItem.id === targetID && cartItem.userID === user.value.uid)
+    
+                    console.log(item)
+    
+                    if(!item){
+                        console.log('exist not')
+                        let product = props.products.find((storeItem)=> storeItem.id === targetID)
+                        const { id } = product
+                        console.log(id)
+                        const res = await projectFirestore.collection('cart').doc(id).set({
+                            ...product, 
+                            amount:1, 
+                            createdAt: timestamp(),
+                            userID: user.value.uid,
+                        })
+                    } else {
+                        console.log('exist')
+                        const { updateDoc } = useDocument('cart', item.id)
+                        await updateDoc({
+                            amount: item.amount++
+                        })                        
+                    }
+                } else {
+                    router.push({ name: 'signin'})
+                }
+            }
+
+            return { formatPrice, addToCart }
         }
 
     }

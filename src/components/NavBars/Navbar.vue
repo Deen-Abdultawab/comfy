@@ -29,7 +29,7 @@
                     shopping_cart
                     </span>
                 </button>
-                <span class="cart-item-count">0</span>
+                <span class="cart-item-count">{{ itemCount }}</span>
             </div>
         </div>
 
@@ -51,9 +51,12 @@
                   <router-link :to="{ name: 'about'}" class="sidebar-link">about</router-link>
                 </li>
             </ul>
-             <div class="user-btns">
+             <div class="user-btns" v-if="!user">
                 <router-link :to="{ name: 'signin'}" class="btn">login</router-link>
                 <router-link :to="{ name: 'signup'}" class="btn">SignUp</router-link>
+            </div>
+            <div class="user-btns">
+                <button class="btn" v-if="user" @click="handleClick">log out</button>
             </div>
         </aside>
     </section>
@@ -71,12 +74,35 @@
             
 
             <div class="cart-items-container">
-                
+                <article class="cart-items" v-for="cart in carts" :key="cart.id">
+                    <div class="col-1">
+                        <img :src="cart.fields.image[0].thumbnails.large.url" class="cart-item-img" :alt="cart.fields.name">
+                    </div>
+                    <div class="col-2">
+                        <div cart-info>
+                            <h4 class="title">{{ cart.fields.name }}</h4>
+                            <p class="price">{{ `${formatPrice(cart.fields.price)}` }}</p>
+
+                            <button class="remove-btn" :data-id="cart.id">
+                                remove
+                            </button>
+                        </div>
+                        <div class="ctrl-btns" >
+                            <button class="increase-btn" :data-id="cart.id">
+                                <span class="material-icons">keyboard_arrow_up</span>
+                            </button>
+                            <span class="item-quantity" :data-id="cart.id">{{ cart.amount }}</span>
+                            <button class="decrease-btn" :data-id="cart.id">
+                                <span class="material-icons">keyboard_arrow_down</span>
+                            </button>
+                        </div>
+                    </div>
+                </article>
             </div>
 
             <footer>
                 <h3 class="cart-total slanted-text">
-                  total : $00.00
+                  total: {{ `${formatPrice(totalCost)}` }}
                 </h3>
                 <a  href="payment.html" class="cart-checkout-btn btn">checkout</a>
             </footer>
@@ -85,32 +111,67 @@
 </template>
 
 <script>
-import { ref } from 'vue'
+import getCollection from '@/functions/getCollection'
 import getUser from '@/functions/getUser'
 import CartMenu from '../CartMenu.vue'
 import useLogout from '@/functions/useLogout'
 import { useRouter } from 'vue-router'
+import getFormatPrice from '@/functions/getFormatPrice'
+import { computed, ref } from 'vue'
     export default {
         props: ['logo', 'page', 'home'],
         components: { CartMenu },
         
         setup(){
-            const showMob = ref(false)
             const { user } = getUser()
+            const showMob = ref(false)
             const showCart = ref(false)
             const {logout} = useLogout()
             const router = useRouter()
+            const { formatPrice } = getFormatPrice()
+            const { documents:carts } = getCollection('cart', ['userID', '==', user.value.uid])
+            const itemCount = ref(0)
+            const totalCost = ref(0)
+           
+
+             setTimeout(()=>{
+                itemCount.value = computed(()=>{
+                    let count = 0
+                    carts.value.forEach((item)=>{
+                        count += item.amount
+                    })
+                    return count
+                })
+
+                carts.value.forEach((item)=>{
+                        // cost += item.fields.price * item.amount
+                        console.log(typeof item.fields.price)
+                        console.log(typeof item.amount)
+                    })
+
+                totalCost.value = computed(()=>{
+                    let cost = 0
+                    carts.value.forEach((item)=>{
+                        cost += item.fields.price * item.amount
+                    })
+                    return cost
+                })
+            }, 2000)
+
+            
+            // console.log(itemCount)
+            // const cartItems = ref(null)
+                
 
             function navToggle(){
                 showMob.value = true
-                console.log(showMob)
             }
             function handleClose(){
                 showMob.value = false
-                console.log(showMob)
             }
             function cartToggle(){
                 showCart.value = true
+                console.log(carts.value.length)
             }
             function closeCart(){
                 showCart.value = false
@@ -125,7 +186,7 @@ import { useRouter } from 'vue-router'
        }
 
             
-            return { showMob, navToggle, handleClose, user, cartToggle, showCart, handleClick, closeCart}
+            return { showMob, navToggle, handleClose, user, cartToggle, showCart, handleClick, closeCart, carts, formatPrice, itemCount, totalCost}
 
         }
     }
@@ -389,7 +450,7 @@ import { useRouter } from 'vue-router'
         padding: 1.5rem 1rem 0;
         display: grid;
         grid-template-rows: auto 1fr auto;
-        overflow: scroll;
+        overflow-y: auto;
         transition: var(--transition);
         transform: translateX(100%);
     }
@@ -439,8 +500,9 @@ import { useRouter } from 'vue-router'
 
     .col-2 {
         flex: 1;
-        display: flex;
-        justify-content: space-between;
+        display: grid;
+        grid-template-columns: 1fr auto;
+        align-items: center;
     }
 
     .remove-btn {
