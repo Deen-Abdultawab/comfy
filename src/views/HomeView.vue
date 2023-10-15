@@ -8,7 +8,7 @@
           <div class="hero-center">
               <h1 class="slanted-text">Rest, Relax, Unwind</h1>
               <h3>Embrace your choices - we do</h3>
-              <a href="products.html" class="hero-btn">shop now</a>
+              <router-link class="hero-btn" :to="{ name: 'products'}">shop now</router-link>
           </div>
       </section>
   </div>

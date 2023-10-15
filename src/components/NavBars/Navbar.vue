@@ -88,11 +88,11 @@
                             </button>
                         </div>
                         <div class="ctrl-btns" >
-                            <button class="increase-btn" :data-id="cart.id">
+                            <button class="increase-btn" :data-id="cart.id" @click="handleIncrease">
                                 <span class="material-icons">keyboard_arrow_up</span>
                             </button>
                             <span class="item-quantity" :data-id="cart.id">{{ cart.amount }}</span>
-                            <button class="decrease-btn" :data-id="cart.id">
+                            <button class="decrease-btn" :data-id="cart.id" @click="handleDecrease">
                                 <span class="material-icons">keyboard_arrow_down</span>
                             </button>
                         </div>
@@ -102,7 +102,7 @@
 
             <footer>
                 <h3 class="cart-total slanted-text">
-                  total: {{ `${formatPrice(totalCost)}` }}
+                  total: {{ totalCost }}
                 </h3>
                 <a  href="payment.html" class="cart-checkout-btn btn">checkout</a>
             </footer>
@@ -112,12 +112,13 @@
 
 <script>
 import getCollection from '@/functions/getCollection'
+import useDocument from '@/functions/useDocument'
 import getUser from '@/functions/getUser'
 import CartMenu from '../CartMenu.vue'
 import useLogout from '@/functions/useLogout'
 import { useRouter } from 'vue-router'
 import getFormatPrice from '@/functions/getFormatPrice'
-import { computed, ref } from 'vue'
+import { computed, onMounted, ref } from 'vue'
     export default {
         props: ['logo', 'page', 'home'],
         components: { CartMenu },
@@ -132,35 +133,41 @@ import { computed, ref } from 'vue'
             const { documents:carts } = getCollection('cart', ['userID', '==', user.value.uid])
             const itemCount = ref(0)
             const totalCost = ref(0)
-           
 
-             setTimeout(()=>{
-                itemCount.value = computed(()=>{
-                    let count = 0
-                    carts.value.forEach((item)=>{
-                        count += item.amount
+            onMounted(()=>{
+                setTimeout(()=>{
+                    console.log(carts.value)
+                    itemCount.value = computed(()=>{
+                        let count = 0
+                        carts.value.forEach((item)=>{
+                            count += item.amount
+                        })
+                        return count
                     })
-                    return count
-                })
-
-                carts.value.forEach((item)=>{
-                        // cost += item.fields.price * item.amount
-                        console.log(typeof item.fields.price)
-                        console.log(typeof item.amount)
+    
+                    totalCost.value = computed(()=>{
+                        let cost = 0
+                        carts.value.forEach((item)=>{
+                            cost += Number(item.fields.price) * Number(item.amount)
+                        })
+                         return formatPrice(cost)
                     })
+                }, 1500)
+            })
 
-                totalCost.value = computed(()=>{
-                    let cost = 0
-                    carts.value.forEach((item)=>{
-                        cost += item.fields.price * item.amount
-                    })
-                    return cost
-                })
-            }, 2000)
-
-            
-            // console.log(itemCount)
-            // const cartItems = ref(null)
+        
+            async function handleIncrease(e){
+                const targetElement = e.target
+                const targetId = targetElement.dataset.id || targetElement.parentElement.dataset.id
+                let targetItem = carts.value.find((item)=> item.id === targetId && item.userID === user.value.uid)
+                if(targetItem){
+                    const { updateDoc } = useDocument('cart', targetItem.id)
+                    await updateDoc({
+                        amount: targetItem.amount++
+                    }) 
+                    console.log(targetItem)
+                }
+            }
                 
 
             function navToggle(){
@@ -176,17 +183,17 @@ import { computed, ref } from 'vue'
             function closeCart(){
                 showCart.value = false
             }
-       
+        
 
-       async function handleClick(){
-            await logout()
-            console.log('logged out')
-            router.push({ name: 'home'})
+        async function handleClick(){
+                await logout()
+                console.log('logged out')
+                router.push({ name: 'home'})
 
-       }
+        }
 
             
-            return { showMob, navToggle, handleClose, user, cartToggle, showCart, handleClick, closeCart, carts, formatPrice, itemCount, totalCost}
+            return { showMob, navToggle, handleClose, user, cartToggle, showCart, handleClick, closeCart, carts, formatPrice, itemCount, totalCost, handleIncrease}
 
         }
     }
