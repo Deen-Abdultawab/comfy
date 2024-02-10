@@ -36,17 +36,21 @@ import fetchData from '../functions/fetchData'
 import SingleProduct from '@/components/SingleProduct.vue'
 import { timestamp } from '@/firebase/config'
 import { projectFirestore } from '@/firebase/config'
+import getUser from '@/functions/getUser'
+
 
 
 export default {
   name: 'HomeView',
   components: { Navbar, SingleProduct, Spinner },
   setup(){
+    const { user } = getUser()
     const logoUrl = "logo-white.svg"
     const home = true
     const url = 'https://course-api.com/javascript-store-products'
 
     const { error, store, getData, isLoading } = fetchData()
+    let useItems;
     const { documents } = getCollection('store')
     const pageLoaded = ref(false)
     
@@ -89,10 +93,17 @@ export default {
     onMounted(() => {
         setTimeout(()=>{
             pageLoaded.value = true
-            console.log(documents.value)
-            if(documents.value.length < 1){
+            if(user.value){
+                useItems = documents.value
+            } else {
+                useItems = store.value
+            }
+            console.log(useItems)
+            if(useItems.length < 1){
                 console.log('store is empty')
-                setUpStore()
+                if(user.value){
+                    setUpStore()
+                }
             } else {
                 console.log('store is filled')
             }

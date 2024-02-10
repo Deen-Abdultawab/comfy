@@ -1,11 +1,5 @@
 import { createRouter, createWebHistory } from "vue-router";
 import HomeView from "../views/HomeView.vue";
-import AboutView from "../views/AboutView.vue";
-import Products from "../views/Products.vue";
-import Product from "../views/Product.vue";
-import Payment from "../views/Payment.vue";
-import SignIn from "../views/UserPages/SignIn.vue";
-import SignUp from "../views/UserPages/SignUp.vue";
 
 const routes = [
   {
@@ -16,34 +10,34 @@ const routes = [
   {
     path: "/about",
     name: "about",
-    component: AboutView,
+    component: () => import('../views/AboutView.vue')
   },
   {
     path: "/Products",
     name: "products",
-    component: Products,
+    component: () => import('../views/Products.vue')
   },
   {
     path: "/Products/:id",
     name: "product",
-    component: Product,
+    component: () => import('../views/Product.vue'),
     props: true,
   },
   {
     path: "/payment",
     name: "payment",
-    component: Payment,
+    component: () => import('../views/Payment.vue'),
     props: true,
   },
   {
     path: "/signin",
     name: "signin",
-    component: SignIn,
+    component: () => import('../views/UserPages/SignIn.vue'),
   },
   {
     path: "/signup",
     name: "signup",
-    component: SignUp,
+    component: () => import('../views/UserPages/SignUp.vue'),
   },
 ];
 

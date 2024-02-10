@@ -69,35 +69,41 @@
                 <button class="close-cart-btn" @click="closeCart">
                     <span class="material-icons close-btn">close</span>
                 </button>
-                <h3 class="cart-title slanted-text">Your Bag</h3>
+                <!-- <h3 class="cart-title slanted-text">Your Bag</h3> -->
             </div>
             
 
             <div class="cart-items-container">
-                <article class="cart-items" v-for="cart in carts" :key="cart.id">
-                    <div class="col-1">
-                        <img :src="cart.fields.image[0].thumbnails.large.url" class="cart-item-img" :alt="cart.fields.name">
-                    </div>
-                    <div class="col-2">
-                        <div cart-info>
-                            <h4 class="title">{{ cart.fields.name }}</h4>
-                            <p class="price">{{ `${formatPrice(cart.fields.price)}` }}</p>
+                <div class="user-valid" v-if="user && carts.length">
+                
+                    <article class="cart-items" v-for="cart in carts" :key="cart.id">
+                        <div class="col-1">
+                            <img :src="cart.fields.image[0].thumbnails.large.url" class="cart-item-img" :alt="cart.fields.name">
+                        </div>
+                        <div class="col-2">
+                            <div cart-info>
+                                <h4 class="title">{{ cart.fields.name }}</h4>
+                                <p class="price">{{ `${formatPrice(cart.fields.price)}` }}</p>
 
-                            <button class="remove-btn" :data-id="cart.id">
-                                remove
-                            </button>
+                                <button class="remove-btn" :data-id="cart.id">
+                                    remove
+                                </button>
+                            </div>
+                            <div class="ctrl-btns" >
+                                <button class="increase-btn" :data-id="cart.id" @click="handleIncrease">
+                                    <span class="material-icons">keyboard_arrow_up</span>
+                                </button>
+                                <span class="item-quantity" :data-id="cart.id">{{ cart.amount }}</span>
+                                <button class="decrease-btn" :data-id="cart.id" @click="handleDecrease">
+                                    <span class="material-icons">keyboard_arrow_down</span>
+                                </button>
+                            </div>
                         </div>
-                        <div class="ctrl-btns" >
-                            <button class="increase-btn" :data-id="cart.id" @click="handleIncrease">
-                                <span class="material-icons">keyboard_arrow_up</span>
-                            </button>
-                            <span class="item-quantity" :data-id="cart.id">{{ cart.amount }}</span>
-                            <button class="decrease-btn" :data-id="cart.id" @click="handleDecrease">
-                                <span class="material-icons">keyboard_arrow_down</span>
-                            </button>
-                        </div>
-                    </div>
-                </article>
+                    </article>
+                </div>
+                <div class="user-invalid" v-if="!user || !carts.length">
+                    <h3>Cart is Empty</h3>
+                </div>
             </div>
 
             <footer>
@@ -130,20 +136,33 @@ import { computed, onMounted, ref } from 'vue'
             const {logout} = useLogout()
             const router = useRouter()
             const { formatPrice } = getFormatPrice()
-            const { documents:carts } = getCollection('cart', ['userID', '==', user.value.uid])
+            const carts = ref();
+            const { documents } = getCollection('cart', ['userID', '==', user.value.uid])
+            
+
+            if(user.value){
+                carts.value = computed(()=>{ return documents.value})
+            } else {
+                carts.value = []
+            }
+            
             const itemCount = ref(0)
             const totalCost = ref(0)
 
             onMounted(()=>{
                 setTimeout(()=>{
-                    console.log(carts.value)
-                    itemCount.value = computed(()=>{
-                        let count = 0
-                        carts.value.forEach((item)=>{
-                            count += item.amount
+                    let count = 0
+                    if(user.value){
+                        console.log(carts.value)
+                        itemCount.value = computed(()=>{
+                            carts.value.forEach((item)=>{
+                                count += item.amount
+                            })
+                            return count
                         })
+                    } else {
                         return count
-                    })
+                    }
     
                     totalCost.value = computed(()=>{
                         let cost = 0
@@ -178,7 +197,6 @@ import { computed, onMounted, ref } from 'vue'
             }
             function cartToggle(){
                 showCart.value = true
-                console.log(carts.value.length)
             }
             function closeCart(){
                 showCart.value = false

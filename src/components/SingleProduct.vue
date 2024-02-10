@@ -47,16 +47,7 @@ import { useRouter } from 'vue-router'
     
                     const item = documents.value.find((cartItem)=> cartItem.id === targetID && cartItem.userID === user.value.uid)
                     
-    
-                    if(item){
-                        console.log('exist')
-                        const { updateDoc } = useDocument('cart', item.id)
-                        const res = await projectFirestore.collection('cart').doc(item.id).update({
-                            amount: item.amount++
-                        })
-                       
-                        console.log('updated ', documents.value, item, documents.value)                   
-                    } else {
+                    if(!item){                   
                         console.log('exist not')
                         let product = props.products.find((storeItem)=> storeItem.id === targetID)
                         const { id } = product
@@ -67,6 +58,14 @@ import { useRouter } from 'vue-router'
                             createdAt: timestamp(),
                             userID: user.value.uid,
                         })
+                    } else {
+                        console.log('exist')
+                        // const { updateDoc } = useDocument('cart', item.id)
+                        const res = await projectFirestore.collection('cart').doc(item.id).update({
+                            amount: item.amount++
+                        })
+                       
+                        console.log('updated ', documents.value, item, documents.value)
                     }
                 } else {
                     router.push({ name: 'signin'})
